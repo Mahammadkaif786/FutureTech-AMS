@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}Fees Ledger - FutureTech Computer Institute{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <!-- Header -->
+    <div class="row mb-3 no-print">
+        <div class="col-12">
+            <h2 class="fw-bold mb-1">Financial Accounts & Fee Ledger</h2>
+            <p class="text-muted small">Monitor collection metrics, clear outstanding balances, and print receipt logs.</p>
+        </div>
+    </div>
+
+    <!-- Stats & Search Row -->
+    <div class="row g-3 mb-4 align-items-center no-print">
+        <!-- Search bar -->
+        <div class="col-12 col-md-5">
+            <form action="{{ url_for('fees.index') }}" method="GET" class="d-flex gap-2">
+                <div class="search-wrapper flex-grow-1" style="max-width: 100%;">
+                    <i class="bi bi-search"></i>
+                    <input class="form-control" type="search" name="search" placeholder="Search by student name, ID, or receipt..." value="{{ search_q or '' }}">
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm px-3">Search</button>
+                {% if search_q %}
+                    <a href="{{ url_for('fees.index') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Fees Table Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="border-collapse: collapse;">
+                    <thead>
+                        <tr class="bg-light border-bottom">
+                            <th class="ps-4">Student Name</th>
+                            <th>Course</th>
+                            <th>Total Fee</th>
+                            <th>Discount</th>
+                            <th>Net Payable</th>
+                            <th>Paid Amount</th>
+                            <th>Pending Balance</th>
+                            <th>Method</th>
+                            <th>Receipt ID</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4" style="width: 260px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody style="border-top: none;">
+                        {% if students %}
+                            {% for s in students %}
+                                <tr class="border-bottom border-light-subtle">
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            {% if s.photo %}
+                                                <img src="{{ url_for('static', filename='uploads/' + s.photo) }}" alt="" class="student-list-photo">
+                                            {% else %}
+                                                <div class="avatar-circle">{{ s.full_name[0] | upper }}</div>
+                                            {% endif %}
+                                            <div>
+                                                <a href="{{ url_for('students.view_student', id=s.id) }}" class="fw-bold text-decoration-none text-dark d-block" style="color: var(--text-color) !important;">
+                                                    {{ s.full_name }}
+                                                </a>
+                                                <span class="text-muted small" style="font-size: 0.75rem;">ID: {{ s.student_id }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="small">{{ s.course.course_name }}</td>
+                                    <td class="small">₹{{ "{:,.0f}".format(s.total_fee) }}</td>
+                                    <td class="small text-danger">₹{{ "{:,.0f}".format(s.discount) }}</td>
+                                    <td class="small fw-semibold text-primary">₹{{ "{:,.0f}".format(s.total_fee - s.discount) }}</td>
+                                    <td class="small text-success fw-bold">₹{{ "{:,.0f}".format(s.paid_fee) }}</td>
+                                    <td class="small {% if s.pending_fee > 0 %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                        ₹{{ "{:,.0f}".format(s.pending_fee) }}
+                                    </td>
+                                    <td><span class="badge bg-secondary-subtle text-dark" style="font-size: 0.75rem;">{{ s.payment_method }}</span></td>
+                                    <td class="small text-secondary">{{ s.receipt_number }}</td>
+                                    <td>
+                                        {% if s.status == 'Active' %}
+                                            <span class="badge bg-light-active">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-light-completed">Completed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4 no-print">
+                                        <div class="d-inline-flex gap-1">
+                                            {% if s.pending_fee > 0 %}
+                                                <!-- Collect Dues Trigger Button -->
+                                                <button type="button" class="btn btn-sm btn-primary collect-fee-btn py-1 px-2 border-0" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#paymentModal"
+                                                        data-id="{{ s.id }}"
+                                                        data-name="{{ s.full_name }}"
+                                                        data-pending="{{ s.pending_fee }}"
+                                                        title="Collect Dues">
+                                                    <i class="bi bi-cash-stack"></i> Dues
+                                                </button>
+                                            {% endif %}
+                                            <a href="{{ url_for('fees.history', student_id=s.id) }}" class="btn btn-sm btn-outline-secondary py-1 px-2 border-0" title="Payment History Ledger">
+                                                <i class="bi bi-clock-history"></i> History
+                                            </a>
+                                            <a href="/print/receipt/{{ s.receipt_number }}" target="_blank" class="btn btn-sm btn-outline-success py-1 px-2 border-0" title="Print Invoice">
+                                                <i class="bi bi-printer-fill"></i> Receipt
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="11" class="text-center py-5 text-muted">
+                                    <i class="bi bi-wallet2 fs-2 d-block mb-2 text-muted"></i> No financial accounts found.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination and pagination.pages > 1 %}
+            <div class="card-footer bg-transparent border-0 py-3 no-print">
+                <nav>
+                    <ul class="pagination pagination-sm justify-content-end mb-0">
+                        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('fees.index', page=pagination.prev_num, search=search_q) }}">&laquo;</a>
+                        </li>
+                        {% for p in pagination.iter_pages() %}
+                            {% if p %}
+                                <li class="page-item {% if pagination.page == p %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('fees.index', page=p, search=search_q) }}">{{ p }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('fees.index', page=pagination.next_num, search=search_q) }}">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Reusable Payment Modal for collecting payments -->
+<div class="modal fade no-print" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg text-start">
+            <div class="modal-header border-0 bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="paymentModalLabel">Record Fee Payment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="" method="POST" id="paymentModalForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <span class="d-block text-muted small fw-semibold">Student Name</span>
+                        <span class="fw-bold text-dark fs-5" id="modalStudentName"> Rahul Sharma</span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-semibold">Outstanding Dues</label>
+                        <input type="text" class="form-control bg-light border-0 fw-bold text-danger" id="modalPendingDues" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="amount" class="form-label small fw-semibold">Amount to Collect (INR) <span class="text-danger">*</span></label>
+                        <input type="number" step="0.01" class="form-control" name="amount" id="amount" min="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label small fw-semibold">Payment Method <span class="text-danger">*</span></label>
+                        <select class="form-select" name="payment_method" id="payment_method" required>
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Card">Card</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-info py-2 px-3 small border-0 mb-0 d-flex gap-2 align-items-center">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>Receipt number will be automatically generated upon payment collection.</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-3">Confirm Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Collect Fee Form values Populator
+        const collectBtns = document.querySelectorAll('.collect-fee-btn');
+        collectBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const pending = parseFloat(this.getAttribute('data-pending')) || 0;
+                
+                const modalForm = document.getElementById('paymentModalForm');
+                modalForm.action = `/fees/collect/${id}`;
+                
+                document.getElementById('modalStudentName').textContent = name;
+                document.getElementById('modalPendingDues').value = '₹ ' + pending.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                
+                const amountInput = document.getElementById('amount');
+                amountInput.max = pending;
+                amountInput.value = pending.toFixed(2);
+            });
+        });
+    });
+</script>
+{% endblock %}

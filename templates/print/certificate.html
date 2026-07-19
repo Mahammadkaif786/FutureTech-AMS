@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Certificate - {{ student.full_name }}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #fff;
+            color: #000;
+            padding: 10mm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .certificate-container {
+            width: 277mm; /* 297 - 20 padding */
+            height: 190mm; /* 210 - 20 padding */
+            border: 15px double #1e40af;
+            background-color: #ffffff;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+        .cert-inner-border {
+            border: 2px solid #3b82f6;
+            height: 100%;
+            width: 100%;
+            padding: 30px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: center;
+        }
+        .cert-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .cert-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #1e40af;
+            letter-spacing: 0.1em;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+        .cert-subtitle {
+            font-size: 0.85rem;
+            letter-spacing: 0.2em;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .cert-recipient {
+            font-family: 'Great Vibes', cursive;
+            font-size: 3.5rem;
+            color: #0f172a;
+            margin: 15px 0;
+        }
+        .cert-body-text {
+            font-size: 1.1rem;
+            color: #334155;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        .cert-footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 30px;
+            padding: 0 40px;
+        }
+        .cert-signature-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 220px;
+        }
+        .signature-line {
+            border-bottom: 1px solid #94a3b8;
+            width: 100%;
+            margin-bottom: 8px;
+            min-height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .signature-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .gold-seal {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #f59e0b 60%, #d97706 100%);
+            border: 3px double #fff;
+            box-shadow: 0 0 0 2px #f59e0b, 0 4px 6px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            line-height: 1.3;
+            text-align: center;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                padding: 0;
+                background-color: #fff;
+            }
+            .certificate-container {
+                border: 15px double #1e40af !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print position-fixed top-0 start-50 translate-middle-x mt-4 text-center z-3">
+        <button onclick="window.print();" class="btn btn-primary px-4"><i class="bi bi-printer"></i> Print Certificate</button>
+        <button onclick="window.close();" class="btn btn-outline-secondary px-3 ms-2">Close</button>
+    </div>
+
+    <!-- Certificate frame -->
+    <div class="certificate-container">
+        <div class="cert-inner-border">
+            
+            <!-- Logo & Title -->
+            <div class="cert-header">
+                {% if g.settings and g.settings.logo %}
+                    <img src="{{ url_for('static', filename='uploads/' + g.settings.logo) }}" alt="Logo" style="max-height: 50px; object-fit: contain;">
+                {% endif %}
+                <div class="cert-title">Certificate of Completion</div>
+                <div class="cert-subtitle">FutureTech Computer Institute</div>
+            </div>
+
+            <!-- Body text -->
+            <div>
+                <p class="mb-1 text-muted small text-uppercase fw-semibold" style="letter-spacing: 0.1em;">This is proudly presented to</p>
+                <div class="cert-recipient">{{ student.full_name }}</div>
+                <p class="cert-body-text">
+                    for successfully qualifying and completing the prescribed course of study in 
+                    <strong class="text-primary">{{ student.course.course_name }}</strong> 
+                    conducted at study center <strong>{{ student.study_center_code }}</strong> 
+                    from <strong>{{ student.start_date.strftime('%B %Y') }}</strong> to <strong>{{ student.end_date.strftime('%B %Y') }}</strong> 
+                    and securing satisfactory grades.
+                </p>
+            </div>
+
+            <!-- Signatures and Gold Seal -->
+            <div class="cert-footer-row">
+                <!-- Date -->
+                <div class="cert-signature-block">
+                    <div class="signature-line fw-semibold small text-dark">
+                        {{ student.completion_date.strftime('%d %B %Y') if student.completion_date else date.today().strftime('%d %b %Y') }}
+                    </div>
+                    <span class="signature-label">Date of Issue</span>
+                </div>
+
+                <!-- Gold Seal -->
+                <div class="gold-seal">
+                    <span>Official<br>FTCI<br>Seal</span>
+                </div>
+
+                <!-- Signature Authority -->
+                <div class="cert-signature-block">
+                    <div class="signature-line">
+                        {% if g.settings and g.settings.certificate_signature %}
+                            <img src="{{ url_for('static', filename='uploads/' + g.settings.certificate_signature) }}" alt="Sig" style="max-height: 35px; object-fit: contain;">
+                        {% endif %}
+                    </div>
+                    <span class="signature-label">Director Signature</span>
+                </div>
+            </div>
+
+            <!-- Certificate ID Footer -->
+            <div class="text-center text-muted small mt-2" style="font-size: 0.65rem;">
+                Certificate Registration Number: <strong>{{ student.certificate_number }}</strong> &middot; Center Code: <strong>{{ student.study_center_code }}</strong>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

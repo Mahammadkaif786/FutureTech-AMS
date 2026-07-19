@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Completed Students - FutureTech Computer Institute{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <!-- Header -->
+    <div class="row mb-3 no-print">
+        <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h2 class="fw-bold mb-1">Course Graduates</h2>
+                <p class="text-muted small">Overview of graduates, completion files, and certificate registries.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="card border-0 shadow-sm mb-4 no-print">
+        <div class="card-body py-3">
+            <form action="{{ url_for('students.completed_list') }}" method="GET" class="row g-3 align-items-center">
+                <!-- Search bar -->
+                <div class="col-12 col-md-4">
+                    <div class="search-wrapper w-100" style="max-width: 100%;">
+                        <i class="bi bi-search"></i>
+                        <input class="form-control" type="search" name="search" placeholder="Search by name, ID, certificate..." value="{{ search_q or '' }}">
+                    </div>
+                </div>
+
+                <!-- Course filter -->
+                <div class="col-12 col-sm-6 col-md-4">
+                    <select name="course" class="form-select small" onchange="this.form.submit()">
+                        <option value="">All Courses</option>
+                        {% for c in all_courses %}
+                            <option value="{{ c.id }}" {% if course_filter == c.id %}selected{% endif %}>{{ c.course_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Filter buttons -->
+                <div class="col-12 col-sm-6 col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100 btn-sm">Filter</button>
+                    <a href="{{ url_for('students.completed_list') }}" class="btn btn-outline-secondary w-100 btn-sm">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Completed Student Listing Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="border-collapse: collapse;">
+                    <thead>
+                        <tr class="bg-light border-bottom">
+                            <th class="ps-4" style="width: 130px;">Student ID</th>
+                            <th>Photo</th>
+                            <th>Full Name</th>
+                            <th>Course Completed</th>
+                            <th>Admission Date</th>
+                            <th>Completion Date</th>
+                            <th>Certificate ID</th>
+                            <th class="text-end pe-4" style="width: 180px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody style="border-top: none;">
+                        {% if students %}
+                            {% for s in students %}
+                                <tr class="border-bottom border-light-subtle">
+                                    <td class="ps-4 fw-semibold text-secondary small">{{ s.student_id }}</td>
+                                    <td>
+                                        {% if s.photo %}
+                                            <img src="{{ url_for('static', filename='uploads/' + s.photo) }}" alt="" class="student-list-photo">
+                                        {% else %}
+                                            <div class="avatar-circle">
+                                                {{ s.full_name[0] | upper }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('students.view_student', id=s.id) }}" class="fw-bold text-decoration-none text-dark d-block text-truncate" style="color: var(--text-color) !important;">
+                                            {{ s.full_name }}
+                                        </a>
+                                    </td>
+                                    <td class="small">{{ s.course.course_name }}</td>
+                                    <td class="small">{{ s.admission_date.strftime('%d %b %Y') }}</td>
+                                    <td class="small fw-semibold text-secondary">
+                                        {{ s.completion_date.strftime('%d %b %Y') if s.completion_date else '-' }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light-completed"><i class="bi bi-patch-check-fill me-1"></i> {{ s.certificate_number or '-' }}</span>
+                                    </td>
+                                    <td class="text-end pe-4 no-print">
+                                        <div class="d-inline-flex gap-1">
+                                            <a href="{{ url_for('students.view_student', id=s.id) }}" class="btn btn-sm btn-outline-secondary border-0 p-1" title="View Profile"><i class="bi bi-eye-fill"></i> Profile</a>
+                                            <a href="{{ url_for('students.edit_student', id=s.id) }}" class="btn btn-sm btn-outline-primary border-0 p-1" title="Edit Student"><i class="bi bi-pencil-fill"></i> Edit</a>
+                                            <!-- Print certificate shortcut target blank -->
+                                            <a href="/print/certificate/{{ s.id }}" target="_blank" class="btn btn-sm btn-success border-0 p-1" title="Print Certificate"><i class="bi bi-printer-fill"></i> Print Cert</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="bi bi-award fs-2 d-block mb-2 text-muted"></i> No completed students match your criteria.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination and pagination.pages > 1 %}
+            <div class="card-footer bg-transparent border-0 py-3 no-print">
+                <nav>
+                    <ul class="pagination pagination-sm justify-content-end mb-0">
+                        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('students.completed_list', page=pagination.prev_num, search=search_q, course=course_filter) }}">&laquo;</a>
+                        </li>
+                        {% for p in pagination.iter_pages() %}
+                            {% if p %}
+                                <li class="page-item {% if pagination.page == p %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('students.completed_list', page=p, search=search_q, course=course_filter) }}">{{ p }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('students.completed_list', page=pagination.next_num, search=search_q, course=course_filter) }}">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

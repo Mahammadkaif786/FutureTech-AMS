@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Institute Settings - FutureTech{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <!-- Header Title -->
+    <div class="row mb-4 no-print">
+        <div class="col-12">
+            <h2 class="fw-bold mb-1">Institute Profile Settings</h2>
+            <p class="text-muted small">Update branding details, center registration codes, invoice footer disclaimers, and signature marks.</p>
+        </div>
+    </div>
+
+    <!-- Setting Form Grid Layout -->
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-10">
+            <div class="card border-0 shadow-sm mb-5">
+                <!-- Navigation Tabs inside Card Header -->
+                <div class="card-header border-bottom bg-transparent pt-3 px-4">
+                    <ul class="nav nav-tabs card-header-tabs border-0" id="settingsTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-semibold" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-panel" type="button" role="tab" aria-controls="profile-panel" aria-selected="true">
+                                <i class="bi bi-building me-1"></i> Institute Profile
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-semibold" id="branding-tab" data-bs-toggle="tab" data-bs-target="#branding-panel" type="button" role="tab" aria-controls="branding-panel" aria-selected="false">
+                                <i class="bi bi-image me-1"></i> Branding Assets
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <form action="" method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="card-body p-4">
+                        <div class="tab-content" id="settingsTabContent">
+                            
+                            <!-- PANEL 1: General Details -->
+                            <div class="tab-pane fade show active" id="profile-panel" role="tabpanel" aria-labelledby="profile-tab">
+                                <div class="form-section-title"><i class="bi bi-info-circle-fill me-1"></i> Contact & Center Details</div>
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <label for="institute_name" class="form-label small fw-semibold">Institute Name <span class="text-danger">*</span></label>
+                                        {{ form.institute_name(class="form-control small", id="institute_name", placeholder="e.g. FutureTech Computer Institute") }}
+                                        {% if form.institute_name.errors %}
+                                            {% for error in form.institute_name.errors %}
+                                                <div class="text-danger small mt-1">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="col-12 col-md-6">
+                                        <label for="study_center_code" class="form-label small fw-semibold">Default Study Center Code <span class="text-danger">*</span></label>
+                                        {{ form.study_center_code(class="form-control small", id="study_center_code", placeholder="e.g. P22") }}
+                                        {% if form.study_center_code.errors %}
+                                            {% for error in form.study_center_code.errors %}
+                                                <div class="text-danger small mt-1">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label for="phone" class="form-label small fw-semibold">Contact Phone Number</label>
+                                        {{ form.phone(class="form-control small", id="phone", placeholder="Phone number") }}
+                                        {% if form.phone.errors %}
+                                            {% for error in form.phone.errors %}
+                                                <div class="text-danger small mt-1">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label for="email" class="form-label small fw-semibold">Email Address</label>
+                                        {{ form.email(class="form-control small", id="email", placeholder="Email address") }}
+                                        {% if form.email.errors %}
+                                            {% for error in form.email.errors %}
+                                                <div class="text-danger small mt-1">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="address" class="form-label small fw-semibold">Institute Address</label>
+                                        {{ form.address(class="form-control small", id="address", rows="2", placeholder="Campus physical address...") }}
+                                        {% if form.address.errors %}
+                                            {% for error in form.address.errors %}
+                                                <div class="text-danger small mt-1">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="receipt_footer" class="form-label small fw-semibold">Receipt Invoice Footer Disclaimer</label>
+                                        {{ form.receipt_footer(class="form-control small", id="receipt_footer", rows="2", placeholder="Note printed at the bottom of fee receipts...") }}
+                                        {% if form.receipt_footer.errors %}
+                                            {% for error in form.receipt_footer.errors %}
+                                                <div class="text-danger small mt-1">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- PANEL 2: Media Assets -->
+                            <div class="tab-pane fade" id="branding-panel" role="tabpanel" aria-labelledby="branding-tab">
+                                <div class="form-section-title"><i class="bi bi-image-fill me-1"></i> Branding Uploads</div>
+                                
+                                <div class="row g-4 align-items-center mb-4">
+                                    <!-- Institute Logo -->
+                                    <div class="col-12 col-md-6">
+                                        <div class="border rounded p-3 bg-light-subtle h-100">
+                                            <label for="logo" class="form-label fw-bold small text-primary mb-1">Institute Logo</label>
+                                            <p class="text-muted small mb-3">Visible on application headers, student ID cards, and admission receipts (PNG/JPG, Max 2MB).</p>
+                                            
+                                            <div class="mb-3">
+                                                {{ form.logo(class="form-control form-control-sm", id="logo") }}
+                                                {% if form.logo.errors %}
+                                                    {% for error in form.logo.errors %}
+                                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <!-- Current Logo Preview -->
+                                            <div class="d-flex align-items-center gap-3">
+                                                <span class="text-muted small">Current Asset:</span>
+                                                {% if settings.logo %}
+                                                    <img src="{{ url_for('static', filename='uploads/' + settings.logo) }}" alt="Logo" class="img-thumbnail" style="max-height: 70px; max-width: 150px; object-fit: contain;">
+                                                {% else %}
+                                                    <span class="badge bg-secondary">System Default Text</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Certificate Signature -->
+                                    <div class="col-12 col-md-6">
+                                        <div class="border rounded p-3 bg-light-subtle h-100">
+                                            <label for="certificate_signature" class="form-label fw-bold small text-primary mb-1">Certificate Authority Signature</label>
+                                            <p class="text-muted small mb-3">Rendered on course completion certificates as the official signature mark (PNG/JPG, Max 2MB).</p>
+                                            
+                                            <div class="mb-3">
+                                                {{ form.certificate_signature(class="form-control form-control-sm", id="certificate_signature") }}
+                                                {% if form.certificate_signature.errors %}
+                                                    {% for error in form.certificate_signature.errors %}
+                                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <!-- Current Signature Preview -->
+                                            <div class="d-flex align-items-center gap-3">
+                                                <span class="text-muted small">Current Asset:</span>
+                                                {% if settings.certificate_signature %}
+                                                    <img src="{{ url_for('static', filename='uploads/' + settings.certificate_signature) }}" alt="Signature" class="img-thumbnail" style="max-height: 70px; max-width: 150px; object-fit: contain;">
+                                                {% else %}
+                                                    <span class="badge bg-secondary">No Signature Uploaded</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Action Submit Button -->
+                        <div class="d-flex justify-content-end gap-2 mt-5 border-top pt-3">
+                            <button type="reset" class="btn btn-sm btn-outline-secondary">Reset Form</button>
+                            <button type="submit" class="btn btn-sm btn-primary px-4"><i class="bi bi-check-circle-fill"></i> Save Changes</button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

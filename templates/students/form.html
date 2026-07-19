@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if mode == 'add' %}Admission Form - FutureTech{% else %}Edit Student - {{ student.full_name }}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <!-- Header Title -->
+    <div class="row mb-3 no-print">
+        <div class="col-12">
+            <h2 class="fw-bold mb-1">
+                {% if mode == 'add' %}Student Admission Form{% else %}Modify Student Records{% endif %}
+            </h2>
+            <p class="text-muted small">
+                {% if mode == 'add' %}Register a new student and record their academic details and initial payments.{% else %}Update profile information, batch timelines, or course details for this student.{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Form Card -->
+    <div class="row justify-content-center">
+        <div class="col-12 col-xxl-10">
+            <div class="card border-0 shadow-sm mb-5">
+                <form action="" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    {% if is_duplicate %}
+                        <!-- Bypass duplicate check checkbox -->
+                        <input type="hidden" name="bypass_duplicate" value="true">
+                    {% endif %}
+
+                    <!-- Form Header Info & Photo Uploader -->
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="row align-items-center g-4">
+                            <!-- Left: Photo Uploader -->
+                            <div class="col-auto">
+                                <div class="photo-upload-container mx-auto" onclick="document.getElementById('photo').click();">
+                                    {% if mode == 'edit' and student.photo %}
+                                        <img src="{{ url_for('static', filename='uploads/' + student.photo) }}" id="photo-preview" class="photo-upload-preview" alt="Student Photo">
+                                        <div id="photo-upload-placeholder" class="text-center" style="display: none;">
+                                            <i class="bi bi-camera photo-upload-icon d-block mb-1"></i>
+                                            <span class="small text-muted">Upload Photo</span>
+                                        </div>
+                                    {% else %}
+                                        <img src="" id="photo-preview" class="photo-upload-preview" alt="Student Photo" style="display: none;">
+                                        <div id="photo-upload-placeholder" class="text-center">
+                                            <i class="bi bi-camera photo-upload-icon d-block mb-1"></i>
+                                            <span class="small text-muted" style="font-size: 0.75rem;">Upload Photo</span>
+                                        </div>
+                                    {% endif %}
+                                    <input type="file" name="photo" id="photo" class="d-none" accept=".jpg,.jpeg,.png">
+                                </div>
+                                {% if form.photo.errors %}
+                                    {% for error in form.photo.errors %}
+                                        <div class="text-danger text-center small mt-1" style="font-size: 0.75rem;">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <!-- Right: Admission Metadata -->
+                            <div class="col">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label text-muted small mb-1">Student ID (System Generated)</label>
+                                        <input type="text" class="form-control fw-bold text-primary bg-light border-0" value="{% if mode == 'add' %}{{ generated_id }}{% else %}{{ student.student_id }}{% endif %}" readonly>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label text-muted small mb-1">Admission Date</label>
+                                        <input type="text" class="form-control text-muted bg-light border-0" value="{% if mode == 'add' %}{{ date.today().strftime('%d %b %Y') }}{% else %}{{ student.admission_date.strftime('%d %b %Y') }}{% endif %}" readonly>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label for="study_center_code" class="form-label text-muted small mb-1">Study Center Code</label>
+                                        {{ form.study_center_code(class="form-control small", id="study_center_code") }}
+                                        {% if form.study_center_code.errors %}
+                                            {% for error in form.study_center_code.errors %}
+                                                <div class="text-danger small mt-1">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Body containing sections -->
+                    <div class="card-body px-4 py-4">
+                        
+                        <!-- SECTION 1: Personal Information -->
+                        <div class="form-section-title"><i class="bi bi-person-fill me-1"></i> Personal Information</div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-md-6">
+                                <label for="full_name" class="form-label small fw-semibold">Full Name <span class="text-danger">*</span></label>
+                                {{ form.full_name(class="form-control small", id="full_name", placeholder="e.g. Rahul Sharma") }}
+                                {% if form.full_name.errors %}
+                                    {% for error in form.full_name.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label for="father_name" class="form-label small fw-semibold">Father's Name <span class="text-danger">*</span></label>
+                                {{ form.father_name(class="form-control small", id="father_name", placeholder="e.g. Ramesh Sharma") }}
+                                {% if form.father_name.errors %}
+                                    {% for error in form.father_name.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12">
+                                <label for="address" class="form-label small fw-semibold">Correspondence Address <span class="text-danger">*</span></label>
+                                {{ form.address(class="form-control small", id="address", rows="2", placeholder="Enter complete address...") }}
+                                {% if form.address.errors %}
+                                    {% for error in form.address.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label for="state" class="form-label small fw-semibold">State <span class="text-danger">*</span></label>
+                                {{ form.state(class="form-control small", id="state", placeholder="e.g. Maharashtra") }}
+                                {% if form.state.errors %}
+                                    {% for error in form.state.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label for="pin_code" class="form-label small fw-semibold">PIN Code <span class="text-danger">*</span></label>
+                                {{ form.pin_code(class="form-control small", id="pin_code", placeholder="6 digits") }}
+                                {% if form.pin_code.errors %}
+                                    {% for error in form.pin_code.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label for="gender" class="form-label small fw-semibold">Gender <span class="text-danger">*</span></label>
+                                {{ form.gender(class="form-select small", id="gender") }}
+                                {% if form.gender.errors %}
+                                    {% for error in form.gender.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label for="mobile" class="form-label small fw-semibold">Mobile Number <span class="text-danger">*</span></label>
+                                {{ form.mobile(class="form-control small", id="mobile", placeholder="10 digits starting with 6-9") }}
+                                {% if form.mobile.errors %}
+                                    {% for error in form.mobile.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label for="alternate_mobile" class="form-label small fw-semibold">Alternate Mobile</label>
+                                {{ form.alternate_mobile(class="form-control small", id="alternate_mobile", placeholder="Optional alternate number") }}
+                                {% if form.alternate_mobile.errors %}
+                                    {% for error in form.alternate_mobile.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label for="dob" class="form-label small fw-semibold">Date of Birth <span class="text-danger">*</span></label>
+                                {{ form.dob(class="form-control small", id="dob", type="date") }}
+                                {% if form.dob.errors %}
+                                    {% for error in form.dob.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12">
+                                <label for="education" class="form-label small fw-semibold">Education Qualification <span class="text-danger">*</span></label>
+                                {{ form.education(class="form-select small", id="education") }}
+                                {% if form.education.errors %}
+                                    {% for error in form.education.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- SECTION 2: Course Details -->
+                        <div class="form-section-title"><i class="bi bi-book-half me-1"></i> Course Enrolment Details</div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="course_id" class="form-label small fw-semibold">Course <span class="text-danger">*</span></label>
+                                <select name="course_id" id="course_id" class="form-select small">
+                                    {% for val, text in form.course_id.choices %}
+                                        {% if val == 0 or val is none %}
+                                            <option value="{{ val or 0 }}" {% if form.course_id.data == val %}selected{% endif %}>{{ text }}</option>
+                                        {% else %}
+                                            {% set db_c = Course.query.get(val) %}
+                                            <option value="{{ val }}" data-fee="{{ db_c.fee }}" data-duration="{{ db_c.duration }}" {% if form.course_id.data == val %}selected{% endif %}>{{ db_c.course_name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                                {% if form.course_id.errors %}
+                                    {% for error in form.course_id.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="batch" class="form-label small fw-semibold">Batch <span class="text-danger">*</span></label>
+                                {{ form.batch(class="form-control small", id="batch", placeholder="e.g. Morning 09:00 - 11:00 AM") }}
+                                {% if form.batch.errors %}
+                                    {% for error in form.batch.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="duration" class="form-label small fw-semibold">Course Duration <span class="text-danger">*</span></label>
+                                {{ form.duration(class="form-control small", id="duration", placeholder="e.g. 6 Months") }}
+                                {% if form.duration.errors %}
+                                    {% for error in form.duration.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="start_date" class="form-label small fw-semibold">Start Date <span class="text-danger">*</span></label>
+                                {{ form.start_date(class="form-control small", id="start_date", type="date") }}
+                                {% if form.start_date.errors %}
+                                    {% for error in form.start_date.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="end_date" class="form-label small fw-semibold">End Date <span class="text-danger">*</span></label>
+                                {{ form.end_date(class="form-control small", id="end_date", type="date") }}
+                                {% if form.end_date.errors %}
+                                    {% for error in form.end_date.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="status" class="form-label small fw-semibold">Enrolment Status <span class="text-danger">*</span></label>
+                                {{ form.status(class="form-select small", id="status") }}
+                                {% if form.status.errors %}
+                                    {% for error in form.status.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- SECTION 3: Fee Details -->
+                        <div class="form-section-title"><i class="bi bi-currency-rupee me-1"></i> Fee and Payment Ledger</div>
+                        <div class="row g-3 mb-2">
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="total_fee" class="form-label small fw-semibold">Total Course Fee (INR) <span class="text-danger">*</span></label>
+                                {{ form.total_fee(class="form-control small", id="total_fee", placeholder="0.00") }}
+                                {% if form.total_fee.errors %}
+                                    {% for error in form.total_fee.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="registration_fee" class="form-label small fw-semibold">Registration Admission Fee</label>
+                                {{ form.registration_fee(class="form-control small", id="registration_fee", placeholder="0.00") }}
+                                {% if form.registration_fee.errors %}
+                                    {% for error in form.registration_fee.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="discount" class="form-label small fw-semibold">Discount Granted</label>
+                                {{ form.discount(class="form-control small", id="discount", placeholder="0.00") }}
+                                {% if form.discount.errors %}
+                                    {% for error in form.discount.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="paid_amount" class="form-label small fw-semibold">Paid Amount / Initial payment</label>
+                                {{ form.paid_amount(class="form-control small", id="paid_amount", placeholder="0.00") }}
+                                {% if form.paid_amount.errors %}
+                                    {% for error in form.paid_amount.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="pending_amount" class="form-label small fw-semibold">Pending Outstanding Dues</label>
+                                <input type="text" class="form-control small fw-bold bg-danger-subtle text-danger" id="pending_amount" value="{% if mode == 'edit' %}{{ "{:.2f}".format(student.pending_fee) }}{% else %}0.00{% endif %}" readonly>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="payment_method" class="form-label small fw-semibold">Payment Method</label>
+                                {{ form.payment_method(class="form-select small", id="payment_method") }}
+                                {% if form.payment_method.errors %}
+                                    {% for error in form.payment_method.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Auto-generated receipt notice -->
+                        <div class="row mt-2 no-print">
+                            <div class="col-12">
+                                <div class="alert alert-info py-2 px-3 small border-0 d-flex align-items-center gap-2 mb-0">
+                                    <i class="bi bi-info-circle-fill"></i>
+                                    <span>
+                                        Receipt Number will be automatically generated on save. Suggested Receipt Number: 
+                                        <strong>{% if mode == 'add' %}{{ generated_receipt }}{% else %}{{ student.receipt_number }}{% endif %}</strong>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Buttons -->
+                        <div class="d-flex justify-content-end gap-2 mt-5 no-print">
+                            {% if mode == 'add' %}
+                                <a href="{{ url_for('students.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                                <button type="reset" class="btn btn-light">Reset</button>
+                                <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i> Save Student</button>
+                            {% else %}
+                                <a href="{{ url_for('students.view_student', id=student.id) }}" class="btn btn-outline-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check2-circle me-1"></i> Update Details</button>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

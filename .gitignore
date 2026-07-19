@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+database.db
+instance/
+static/uploads/stud_*
+static/uploads/branding_*
+.system_generated/
+*.log
+.git/
+check_db.py

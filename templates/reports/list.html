@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports & Exports - FutureTech Computer Institute{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <!-- Header -->
+    <div class="row mb-3 no-print">
+        <div class="col-12">
+            <h2 class="fw-bold mb-1">Reports & Analytics Engine</h2>
+            <p class="text-muted small">Analyze student registries, batch intakes, and collection balances. Export data directly to Excel or print tables.</p>
+        </div>
+    </div>
+
+    <!-- Filter Dashboard Card -->
+    <div class="card border-0 shadow-sm mb-4 no-print">
+        <div class="card-body py-3">
+            <form action="{{ url_for('reports.index') }}" method="GET" class="row g-3 align-items-end">
+                <!-- Report Type -->
+                <div class="col-12 col-md-3">
+                    <label class="form-label text-muted small fw-semibold mb-1">Report Segment</label>
+                    <select name="report_type" class="form-select small" onchange="this.form.submit()">
+                        <option value="all_students" {% if report_type == 'all_students' %}selected{% endif %}>All Registered Students</option>
+                        <option value="active_students" {% if report_type == 'active_students' %}selected{% endif %}>Active Enrolled Students</option>
+                        <option value="completed_students" {% if report_type == 'completed_students' %}selected{% endif %}>Course Graduates</option>
+                        <option value="course_wise" {% if report_type == 'course_wise' %}selected{% endif %}>Course-wise Admissions</option>
+                        <option value="fee_collection" {% if report_type == 'fee_collection' %}selected{% endif %}>Fee Collections Logs</option>
+                        <option value="pending_fees" {% if report_type == 'pending_fees' %}selected{% endif %}>Dues Outstanding</option>
+                        <option value="monthly_admissions" {% if report_type == 'monthly_admissions' %}selected{% endif %}>Monthly Admissions Count</option>
+                    </select>
+                </div>
+
+                <!-- Course selector -->
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label text-muted small fw-semibold mb-1">Course Filter</label>
+                    <select name="course_id" class="form-select small">
+                        <option value="">All Courses</option>
+                        {% for c in courses %}
+                            <option value="{{ c.id }}" {% if course_id == c.id %}selected{% endif %}>{{ c.course_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Date Range From -->
+                <div class="col-6 col-sm-3 col-md-2">
+                    <label class="form-label text-muted small fw-semibold mb-1">From Date</label>
+                    <input type="date" class="form-control small" name="start_date" value="{{ start_date_str }}">
+                </div>
+
+                <!-- Date Range To -->
+                <div class="col-6 col-sm-3 col-md-2">
+                    <label class="form-label text-muted small fw-semibold mb-1">To Date</label>
+                    <input type="date" class="form-control small" name="end_date" value="{{ end_date_str }}">
+                </div>
+
+                <!-- Form Controls -->
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100 btn-sm"><i class="bi bi-filter"></i> Run</button>
+                    <a href="{{ url_for('reports.index') }}" class="btn btn-outline-secondary w-100 btn-sm">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Output Container -->
+    <div class="card border-0 shadow-sm">
+        <!-- Card Header: Title and Download Options -->
+        <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2 pt-3">
+            <div>
+                <h5 class="fw-bold text-primary mb-0">
+                    <i class="bi bi-table me-2"></i>
+                    {% set report_labels = {
+                        'all_students': 'All Registered Students Ledger',
+                        'active_students': 'Active Enrolled Students List',
+                        'completed_students': 'Academic Graduates Registry',
+                        'course_wise': 'Course-wise Enrollment Metrics',
+                        'fee_collection': 'Collections Ledger Log',
+                        'pending_fees': 'Outstanding Dues Ledger',
+                        'monthly_admissions': 'Monthly Admissions intake Summary'
+                    } %}
+                    {{ report_labels.get(report_type, 'Student Registry Report') }}
+                </h5>
+                <span class="text-muted small no-print">Showing filtered entries matching constraints.</span>
+            </div>
+            
+            {% if report_data or monthly_summary %}
+                <div class="d-flex gap-2 no-print">
+                    <!-- Export to Excel -->
+                    <a href="{{ url_for('reports.export_excel', report_type=report_type, course_id=course_id or '', start_date=start_date_str, end_date=end_date_str) }}" class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Export Excel
+                    </a>
+                    
+                    <!-- Print Table -->
+                    <button class="btn btn-sm btn-outline-secondary" onclick="window.print();">
+                        <i class="bi bi-printer-fill me-1"></i> Print Table
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="card-body p-0 mt-2">
+            <!-- Summary stats card inside table (useful for revenue aggregations) -->
+            {% if report_type == 'fee_collection' and report_data %}
+                {% set ns = namespace(sum=0.0) %}
+                {% for p in report_data %}{% set ns.sum = ns.sum + p.amount %}{% endfor %}
+                <div class="p-3 bg-light border-bottom no-print">
+                    <span class="text-muted fw-semibold small">Period Revenue Collection: </span>
+                    <span class="fw-bold text-success fs-5 ms-1">₹{{ "{:,.2f}".format(ns.sum) }}</span>
+                </div>
+            {% elif report_type == 'pending_fees' and report_data %}
+                {% set ns = namespace(sum=0.0) %}
+                {% for s in report_data %}{% set ns.sum = ns.sum + s.pending_fee %}{% endfor %}
+                <div class="p-3 bg-light border-bottom no-print">
+                    <span class="text-muted fw-semibold small">Total Dues Outstanding: </span>
+                    <span class="fw-bold text-danger fs-5 ms-1">₹{{ "{:,.2f}".format(ns.sum) }}</span>
+                </div>
+            {% endif %}
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="bg-light border-bottom">
+                            {% for h in headers %}
+                                <th class="{% if loop.first %}ps-4{% endif %}">{{ h }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if report_type == 'monthly_admissions' %}
+                            {% if monthly_summary %}
+                                {% for month_label, stats in monthly_summary.items() %}
+                                    <tr class="border-bottom border-light-subtle">
+                                        <td class="ps-4 fw-bold text-dark" style="color: var(--text-color) !important;">{{ month_label }}</td>
+                                        <td><span class="badge bg-secondary-subtle text-dark fs-6">{{ stats.count }} Admissions</span></td>
+                                        <td class="fw-bold text-primary">₹{{ "{:,.2f}".format(stats.revenue) }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-muted">
+                                        <i class="bi bi-file-earmark-ruled fs-2 d-block mb-2"></i> No records match filters.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% else %}
+                            {% if report_data %}
+                                {% for item in report_data %}
+                                    <tr class="border-bottom border-light-subtle">
+                                        {% if report_type == 'all_students' %}
+                                            <td class="ps-4 fw-semibold text-secondary small">{{ item.student_id }}</td>
+                                            <td class="fw-bold text-dark" style="color: var(--text-color) !important;">{{ item.full_name }}</td>
+                                            <td class="small">{{ item.mobile }}</td>
+                                            <td class="small">{{ item.course.course_name }}</td>
+                                            <td class="small">{{ item.admission_date.strftime('%d %b %Y') }}</td>
+                                            <td class="small text-success fw-semibold">₹{{ "{:,.2f}".format(item.paid_fee) }}</td>
+                                            <td class="small {% if item.pending_fee > 0 %}text-danger fw-bold{% else %}text-muted{% endif %}">₹{{ "{:,.2f}".format(item.pending_fee) }}</td>
+                                            <td>
+                                                {% if item.status == 'Active' %}
+                                                    <span class="badge bg-light-active">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-light-completed">Completed</span>
+                                                {% endif %}
+                                            </td>
+                                        {% elif report_type == 'active_students' %}
+                                            <td class="ps-4 fw-semibold text-secondary small">{{ item.student_id }}</td>
+                                            <td class="fw-bold text-dark" style="color: var(--text-color) !important;">{{ item.full_name }}</td>
+                                            <td class="small">{{ item.mobile }}</td>
+                                            <td class="small">{{ item.course.course_name }}</td>
+                                            <td class="small">{{ item.admission_date.strftime('%d %b %Y') }}</td>
+                                            <td class="small text-success fw-semibold">₹{{ "{:,.2f}".format(item.paid_fee) }}</td>
+                                            <td class="small {% if item.pending_fee > 0 %}text-danger fw-bold{% else %}text-muted{% endif %}">₹{{ "{:,.2f}".format(item.pending_fee) }}</td>
+                                        {% elif report_type == 'completed_students' %}
+                                            <td class="ps-4 fw-semibold text-secondary small">{{ item.student_id }}</td>
+                                            <td class="fw-bold text-dark" style="color: var(--text-color) !important;">{{ item.full_name }}</td>
+                                            <td class="small">{{ item.course.course_name }}</td>
+                                            <td class="small">{{ item.admission_date.strftime('%d %b %Y') }}</td>
+                                            <td class="small">{{ item.completion_date.strftime('%d %b %Y') if item.completion_date else '-' }}</td>
+                                            <td><span class="badge bg-light-completed">{{ item.certificate_number or '-' }}</span></td>
+                                        {% elif report_type == 'course_wise' %}
+                                            <td class="ps-4 fw-bold text-primary">{{ item.course.course_name }}</td>
+                                            <td class="fw-semibold text-secondary small">{{ item.student_id }}</td>
+                                            <td class="fw-bold text-dark" style="color: var(--text-color) !important;">{{ item.full_name }}</td>
+                                            <td class="small">{{ item.mobile }}</td>
+                                            <td class="small">{{ item.admission_date.strftime('%d %b %Y') }}</td>
+                                            <td class="small">₹{{ "{:,.2f}".format(item.total_fee) }}</td>
+                                            <td class="small text-success fw-bold">₹{{ "{:,.2f}".format(item.paid_fee) }}</td>
+                                            <td>
+                                                {% if item.status == 'Active' %}
+                                                    <span class="badge bg-light-active">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-light-completed">Completed</span>
+                                                {% endif %}
+                                            </td>
+                                        {% elif report_type == 'fee_collection' %}
+                                            <td class="ps-4 fw-semibold text-secondary">{{ item.receipt_number }}</td>
+                                            <td class="small fw-semibold text-secondary">{{ item.student.student_id }}</td>
+                                            <td class="fw-bold text-dark" style="color: var(--text-color) !important;">{{ item.student.full_name }}</td>
+                                            <td class="small">{{ item.student.course.course_name }}</td>
+                                            <td class="small">{{ item.payment_date.strftime('%d %b %Y %I:%M %p') }}</td>
+                                            <td><span class="badge bg-light text-dark border">{{ item.payment_method }}</span></td>
+                                            <td class="fw-bold text-success">₹{{ "{:,.2f}".format(item.amount) }}</td>
+                                        {% elif report_type == 'pending_fees' %}
+                                            <td class="ps-4 fw-semibold text-secondary small">{{ item.student_id }}</td>
+                                            <td class="fw-bold text-dark" style="color: var(--text-color) !important;">{{ item.full_name }}</td>
+                                            <td class="small">{{ item.mobile }}</td>
+                                            <td class="small">{{ item.course.course_name }}</td>
+                                            <td class="small">₹{{ "{:,.2f}".format(item.total_fee) }}</td>
+                                            <td class="small text-success fw-semibold">₹{{ "{:,.2f}".format(item.paid_fee) }}</td>
+                                            <td class="small text-danger fw-bold">₹{{ "{:,.2f}".format(item.pending_fee) }}</td>
+                                        {% endif %}
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="{{ headers|length }}" class="text-center py-5 text-muted">
+                                        <i class="bi bi-file-earmark-ruled fs-2 d-block mb-2"></i> No records match filters.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

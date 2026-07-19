@@ -1,0 +1,441 @@
+/* FutureTech Computer Institute - Admission Management System Stylesheet */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary-color: #1e40af;       /* Deep rich blue */
+    --primary-hover: #1d4ed8;       /* Medium blue */
+    --primary-light: #eff6ff;       /* Very soft blue */
+    --accent-color: #3b82f6;        /* Bright highlight blue */
+    --bg-color: #f8fafc;            /* Clean light slate */
+    --card-bg: #ffffff;             /* Pure white */
+    --text-color: #0f172a;          /* Slate-900 */
+    --text-muted: #64748b;          /* Slate-500 */
+    --border-color: #e2e8f0;        /* Slate-200 */
+    --sidebar-bg: #0f172a;          /* Dark slate sidebar */
+    --sidebar-text: #94a3b8;        /* Muted sidebar text */
+    --sidebar-text-hover: #f8fafc;  /* White hover text */
+    --sidebar-active-bg: #1e40af;   /* Active blue */
+    --sidebar-active-text: #ffffff;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+    --border-radius: 12px;
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+    --bg-color: #0b0f19;            /* Dark deep navy */
+    --card-bg: #161f30;             /* Navy slate card */
+    --text-color: #f1f5f9;          /* Light gray text */
+    --text-muted: #94a3b8;          /* Slate-400 */
+    --border-color: #243049;        /* Slate-800 border */
+    --sidebar-bg: #0b0f19;          /* Same as background for clean dark look */
+    --sidebar-text: #64748b;
+    --sidebar-text-hover: #f8fafc;
+    --sidebar-active-bg: #2563eb;
+    --primary-light: #1c273c;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+}
+
+body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: var(--transition);
+    overflow-x: hidden;
+}
+
+/* Sidebar Styling */
+#sidebar {
+    width: 190px;
+    min-width: 190px;
+    background-color: var(--sidebar-bg);
+    min-height: 100vh;
+    transition: var(--transition);
+    border-right: 1px solid var(--border-color);
+    z-index: 100;
+}
+
+#sidebar .logo-container {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#sidebar .nav-link {
+    color: var(--sidebar-text);
+    padding: 0.75rem 1.25rem;
+    margin: 0.25rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: var(--transition);
+}
+
+#sidebar .nav-link:hover {
+    color: var(--sidebar-text-hover);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+#sidebar .nav-link.active {
+    color: var(--sidebar-active-text);
+    background-color: var(--sidebar-active-bg);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+/* Main Content Area */
+#content-wrapper {
+    display: flex;
+    width: 100%;
+}
+
+#main-content {
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#top-navbar {
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.75rem 1.5rem;
+    z-index: 99;
+}
+
+/* Cards & Layout */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+}
+
+/* Dashboard Metrics Card */
+.metric-card {
+    border-left: 4px solid var(--primary-color);
+    padding: 1.25rem;
+}
+
+.metric-card.active-students { border-left-color: var(--success-color); }
+.metric-card.completed-students { border-left-color: var(--accent-color); }
+.metric-card.pending-fees { border-left-color: var(--warning-color); }
+.metric-card.today-admissions { border-left-color: var(--danger-color); }
+
+.metric-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+/* Avatars */
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
+}
+
+.student-list-photo {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+}
+
+/* Tables */
+.table {
+    color: var(--text-color);
+    vertical-align: middle;
+}
+
+.table th {
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom-width: 1px;
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--primary-light);
+    transition: background-color 0.15s ease;
+}
+
+/* Form Styles */
+.form-control, .form-select {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 8px;
+    padding: 0.55rem 0.85rem;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.15);
+}
+
+.form-control[readonly] {
+    background-color: var(--primary-light);
+    opacity: 0.85;
+}
+
+.form-section-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+/* Photo Upload Layout */
+.photo-upload-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 2px dashed var(--border-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.photo-upload-container:hover {
+    border-color: var(--primary-color);
+    background-color: var(--primary-light);
+}
+
+.photo-upload-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.photo-upload-icon {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+/* Badges */
+.badge {
+    padding: 0.4em 0.7em;
+    font-weight: 500;
+    border-radius: 6px;
+}
+
+.bg-light-active {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: var(--success-color);
+}
+
+.bg-light-completed {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: var(--accent-color);
+}
+
+/* Custom Search Box */
+.search-wrapper {
+    position: relative;
+    max-width: 300px;
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.search-wrapper .form-control {
+    padding-left: 36px;
+}
+
+/* Login Card Center */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at top right, var(--primary-light), var(--bg-color));
+}
+
+.login-card {
+    width: 350px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    background-color: var(--card-bg);
+}
+
+/* Print Utilities */
+@media print {
+    body {
+        background-color: #fff !important;
+        color: #000 !important;
+    }
+    
+    #sidebar, #top-navbar, .no-print, .btn, .alert, .modal, .card-header .btn {
+        display: none !important;
+    }
+    
+    #main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .print-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
+
+/* Custom Print Page Designs */
+.print-paper {
+    background: #fff;
+    color: #000;
+    width: 210mm; /* A4 width */
+    min-height: 297mm; /* A4 height */
+    padding: 20mm;
+    margin: 10px auto;
+    border: 1px solid #ddd;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+}
+
+.certificate-border {
+    border: 15px double var(--primary-color);
+    padding: 30px;
+    min-height: calc(297mm - 70px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: center;
+    position: relative;
+}
+
+.certificate-seal {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: var(--warning-color);
+    border: 3px double #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    margin: 0 auto;
+}
+
+/* Toast container positioning */
+.toast-container {
+    z-index: 1060;
+}
+
+/* Custom transitions */
+.fade-in {
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dark mode switch button alignment */
+.theme-toggle-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+.theme-toggle-btn:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+}

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fee Payment Receipt - {{ payment.receipt_number }}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #fff;
+            color: #000;
+            padding: 30px;
+        }
+        .receipt-card {
+            border: 2px solid #e2e8f0;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header-line {
+            border-bottom: 2px solid #1e40af;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+        .label-cell {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #475569;
+        }
+        .value-cell {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #0f172a;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 2px;
+            margin-bottom: 12px;
+        }
+        .amount-highlight {
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #1e40af;
+        }
+        .footer-note {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+            margin-top: 40px;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                padding: 0;
+            }
+            .receipt-card {
+                border: none;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-3">
+        <!-- Controls -->
+        <div class="row mb-4 no-print text-center">
+            <div class="col-12">
+                <button onclick="window.print();" class="btn btn-primary px-4"><i class="bi bi-printer"></i> Print Receipt</button>
+                <button onclick="window.close();" class="btn btn-outline-secondary px-3 ms-2">Close</button>
+            </div>
+        </div>
+
+        <!-- Receipt Box -->
+        <div class="receipt-card">
+            <!-- Branding Header -->
+            <div class="row align-items-center header-line">
+                <div class="col-2 text-center">
+                    {% if g.settings and g.settings.logo %}
+                        <img src="{{ url_for('static', filename='uploads/' + g.settings.logo) }}" alt="Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
+                    {% else %}
+                        <div class="d-inline-block bg-primary text-white p-2 rounded fw-bold fs-5">FTCI</div>
+                    {% endif %}
+                </div>
+                <div class="col-10 text-center text-sm-start ps-3">
+                    <h4 class="fw-bold mb-0 text-primary">{{ g.settings.institute_name if g.settings else 'FutureTech Computer Institute' }}</h4>
+                    <span class="text-muted small d-block">{{ g.settings.address if g.settings else 'Main Campus, City' }}</span>
+                    <span class="text-muted small">Ph: {{ g.settings.phone if g.settings else '9876543210' }} | Email: {{ g.settings.email if g.settings else 'admissions@futuretech.in' }}</span>
+                </div>
+            </div>
+
+            <!-- Invoice Label -->
+            <div class="text-center mb-4">
+                <h5 class="fw-bold" style="letter-spacing: 0.05em; text-decoration: underline;">FEE PAYMENT RECEIPT</h5>
+            </div>
+
+            <!-- Receipt Info Metadata -->
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="label-cell">Receipt Number</div>
+                    <div class="value-cell text-primary">{{ payment.receipt_number }}</div>
+                </div>
+                <div class="col-6">
+                    <div class="label-cell">Transaction Date</div>
+                    <div class="value-cell">{{ payment.payment_date.strftime('%d %B %Y %I:%M %p') }}</div>
+                </div>
+                
+                <div class="col-6">
+                    <div class="label-cell">Student ID</div>
+                    <div class="value-cell">{{ student.student_id }}</div>
+                </div>
+                <div class="col-6">
+                    <div class="label-cell">Student Full Name</div>
+                    <div class="value-cell">{{ student.full_name }}</div>
+                </div>
+
+                <div class="col-6">
+                    <div class="label-cell">Enrolled Course</div>
+                    <div class="value-cell">{{ student.course.course_name }}</div>
+                </div>
+                <div class="col-6">
+                    <div class="label-cell">Current Batch</div>
+                    <div class="value-cell">{{ student.batch }}</div>
+                </div>
+            </div>
+
+            <!-- Particulars Table -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr class="table-light text-center small fw-bold">
+                                <th>Description</th>
+                                <th style="width: 150px;">Amount (INR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ps-3 fw-medium">
+                                    {% if is_initial %}
+                                        Admission Registration & Initial Installment Fee collection
+                                    {% else %}
+                                        Course Installment Tuition Fee collection
+                                    {% endif %}
+                                </td>
+                                <td class="text-end fw-bold pe-3 text-success">₹{{ "{:,.2f}".format(payment.amount) }}</td>
+                            </tr>
+                            <tr class="text-end small">
+                                <td class="fw-semibold">Total Course Fees Set:</td>
+                                <td class="pe-3">₹{{ "{:,.2f}".format(student.total_fee) }}</td>
+                            </tr>
+                            <tr class="text-end small text-danger">
+                                <td class="fw-semibold">Total Discount Granted:</td>
+                                <td class="pe-3">- ₹{{ "{:,.2f}".format(student.discount) }}</td>
+                            </tr>
+                            <tr class="text-end small text-primary">
+                                <td class="fw-semibold">Cumulative Fees Paid:</td>
+                                <td class="pe-3">₹{{ "{:,.2f}".format(student.paid_fee) }}</td>
+                            </tr>
+                            <tr class="text-end fw-bold text-danger bg-light">
+                                <td>Outstanding Balance Dues:</td>
+                                <td class="pe-3">₹{{ "{:,.2f}".format(student.pending_fee) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Amount Highlight & Payment Method -->
+            <div class="row align-items-center mt-3 g-3">
+                <div class="col-12 col-sm-8">
+                    <div class="amount-highlight">
+                        Amount Paid: ₹{{ "{:,.2f}".format(payment.amount) }}
+                    </div>
+                </div>
+                <div class="col-12 col-sm-4 text-sm-end">
+                    <span class="d-block label-cell mb-1">Method of Payment</span>
+                    <span class="badge bg-dark fs-6">{{ payment.payment_method }}</span>
+                </div>
+            </div>
+
+            <!-- Signatures -->
+            <div class="row mt-5 pt-4 align-items-end">
+                <div class="col-6 text-center">
+                    <div style="border-bottom: 1px solid #000; width: 180px; margin: 0 auto;"></div>
+                    <span class="small text-muted d-block mt-2">Student Signature</span>
+                </div>
+                <div class="col-6 text-center">
+                    <div style="min-height: 35px;">
+                        {% if g.settings and g.settings.certificate_signature %}
+                            <img src="{{ url_for('static', filename='uploads/' + g.settings.certificate_signature) }}" alt="Sig" style="max-height: 40px; object-fit: contain;">
+                        {% endif %}
+                    </div>
+                    <div style="border-bottom: 1px solid #000; width: 180px; margin: 0 auto;"></div>
+                    <span class="small text-muted d-block mt-2">Authorized Signatory</span>
+                </div>
+            </div>
+
+            <!-- Disclaimer Notes footer -->
+            <div class="footer-note">
+                <p class="mb-0">{{ g.settings.receipt_footer if (g.settings and g.settings.receipt_footer) else 'This is a computer-generated fee receipt and does not require physical seal signatures.' }}</p>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>
