@@ -12,7 +12,10 @@ def save_uploaded_photo(file, upload_folder, existing_filename=None):
     and removes the previously uploaded photo if updating.
     """
     # Create upload directory if it does not exist
-    os.makedirs(upload_folder, exist_ok=True)
+    try:
+        os.makedirs(upload_folder, exist_ok=True)
+    except OSError:
+        pass
     
     # Remove existing photo if replacing
     if existing_filename:
@@ -46,7 +49,11 @@ def save_branding_file(file, upload_folder, existing_filename=None):
     """
     Saves branding files (logos or signatures)
     """
-    os.makedirs(upload_folder, exist_ok=True)
+    try:
+        os.makedirs(upload_folder, exist_ok=True)
+    except OSError:
+        pass
+
     if existing_filename:
         old_path = os.path.join(upload_folder, existing_filename)
         if os.path.exists(old_path):
@@ -60,6 +67,7 @@ def save_branding_file(file, upload_folder, existing_filename=None):
     file_path = os.path.join(upload_folder, new_filename)
     file.save(file_path)
     return new_filename
+
 
 def generate_student_id():
     """

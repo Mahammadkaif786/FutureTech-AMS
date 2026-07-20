@@ -130,12 +130,30 @@ def seed_database():
             
     db.session.commit()
 
-if __name__ == '__main__':
-    # Database Initializer Context
-    with app.app_context():
+# Serve uploaded images (supports /tmp/uploads on serverless environments like Vercel)
+from flask import send_from_directory
+import os
+
+@app.route('/static/uploads/<path:filename>')
+def serve_uploads(filename):
+    upload_dir = app.config['UPLOAD_FOLDER']
+    if os.path.exists(os.path.join(upload_dir, filename)):
+        return send_from_directory(upload_dir, filename)
+    static_upload_dir = os.path.join(Config.BASE_DIR, 'static', 'uploads')
+    if os.path.exists(os.path.join(static_upload_dir, filename)):
+        return send_from_directory(static_upload_dir, filename)
+    return '', 404
+
+# Automatically initialize database tables and seed defaults on app startup
+with app.app_context():
+    try:
         db.create_all()
         seed_database()
-        
+    except Exception as err:
+        app.logger.error(f"Database initialization error: {err}")
+
+if __name__ == '__main__':
     # Run the application
     app.run(host='127.0.0.1', port=5000, debug=True)
+
 
